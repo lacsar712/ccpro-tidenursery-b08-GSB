@@ -127,12 +127,47 @@ def seed() -> None:
                         amount_kg=2.5,
                         operator_name="水质技术员",
                     ),
+                    # 一笔明显的错误投喂（误投 3.5kg 轮虫），保留未冲销，
+                    # 供在投喂页发起冲销演示；冲销后仪表盘近 7 日合计应扣除 3.5kg。
+                    FeedEvent(
+                        pond_id=p3.id,
+                        fed_at=now - timedelta(hours=2),
+                        feed_type="轮虫",
+                        amount_kg=3.5,
+                        operator_name="水质技术员",
+                    ),
                 ]
             )
             db.commit()
             print("Seed data inserted.")
         else:
             print("Seed skipped (data exists).")
+
+        # 幂等补充：确保存在一笔可冲销的错误投喂（近 7 日内、未冲销），
+        # 独立于上面的整块种子判断，老库升级后也能得到演示数据。
+        b01 = db.query(Pond).filter(Pond.pond_code == "B-01").first()
+        if b01 is not None:
+            exists = (
+                db.query(FeedEvent)
+                .filter(
+                    FeedEvent.pond_id == b01.id,
+                    FeedEvent.feed_type == "轮虫",
+                    FeedEvent.amount_kg == 3.5,
+                )
+                .first()
+            )
+            if exists is None:
+                db.add(
+                    FeedEvent(
+                        pond_id=b01.id,
+                        fed_at=datetime.now(timezone.utc) - timedelta(hours=2),
+                        feed_type="轮虫",
+                        amount_kg=3.5,
+                        operator_name="水质技术员",
+                    )
+                )
+                db.commit()
+                print("Reversible feed event inserted.")
     finally:
         db.close()
 

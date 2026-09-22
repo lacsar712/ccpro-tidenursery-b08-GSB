@@ -168,17 +168,25 @@ label {
 
 input,
 select,
+textarea,
 button {
   font: inherit;
 }
 
 input,
-select {
+select,
+textarea {
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 10px 12px;
   background: #fff;
   color: var(--ink);
+}
+
+input:disabled,
+textarea:disabled {
+  background: #f2f6f7;
+  color: var(--muted);
 }
 
 .btn {
@@ -198,6 +206,98 @@ select {
   background: transparent;
   color: var(--sea-mid);
   border: 1px solid var(--line);
+}
+
+.btn.danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+/* 投喂页：过滤工具条 / 有效合计 / 冲销状态 */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.check-label {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.check-label input {
+  width: auto;
+}
+
+.effective-sum {
+  font-size: 14px;
+}
+
+.effective-sum strong {
+  color: var(--sea-deep);
+  font-size: 18px;
+}
+
+.row-voucher {
+  background: rgba(196, 69, 54, 0.05);
+}
+
+.amount-neg {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.cell-sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.badge.voucher {
+  background: #fdeceb;
+  color: var(--danger);
+}
+
+.badge.reversed {
+  background: #fff1e0;
+  color: var(--warn);
+}
+
+/* 冲销弹窗 */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 40, 48, 0.45);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  z-index: 50;
+}
+
+.modal {
+  width: min(460px, 100%);
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.modal h2 {
+  margin: 0 0 8px;
+  color: var(--sea-deep);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
 }
 
 .table-wrap {

@@ -37,7 +37,7 @@ docker compose up --build
 - 后端健康检查：http://localhost:8400/api/health
 - API 文档：http://localhost:8400/docs
 
-后端 entrypoint 流程：等待数据库就绪 → `create_all` 建表 → seed 初始数据 → 启动 uvicorn。
+后端 entrypoint 流程：等待数据库就绪 → `create_all` 建表 → `migrate` 幂等补列/约束 → seed 初始数据 → 启动 uvicorn。
 
 ## 功能模块
 
@@ -45,8 +45,13 @@ docker compose up --build
 2. **Hatchery 育苗场**：`name`、`seawaterSource`、`notes`
 3. **Pond 育苗塘**：`hatcheryId`、`pondCode`、`species`、`volumeM3`、`status(stocked|dry|quarantine)`；同场 `pondCode` 唯一
 4. **WaterSample 水质样**：`pondId`、`sampledAt`、`tempC`、`salinityPpt`、`doMgL`、`ph`、`notes`；`doMgL > 0` 且 `ph ∈ [6,9]`，否则返回 **400**
-5. **FeedEvent 投喂**：`pondId`、`fedAt`、`feedType`、`amountKg`、`operatorName`
-6. **Dashboard**：塘总数、quarantine 数、近 24h 采样数、近 7 日投喂总量 kg
+5. **FeedEvent 投喂（含冲销凭证）**：`pondId`、`fedAt`、`feedType`、`amountKg`、`operatorName`
+   - 投喂记录**不允许物理删除**；错误投喂通过「冲销凭证」负向抵消（`POST /api/feed-events/{id}/reverse`）
+   - 冲销字段：原投喂编号 `reversalOfId`、冲销千克（由服务端取负值，**必须且必然等于原投喂千克**）、原因（**至少 6 字**）、冲销时刻、操作人（取当前登录用户，无需前端传入）
+   - **同一原投喂只许冲销一次**（唯一约束 + 接口双重校验）；冲销凭证本身不可再冲销
+   - 冲销后原投喂仍保留在列表中并带「已冲销」标记，冲销凭证为负千克行同时列出
+   - 列表默认返回全部行；`?validOnly=true` 仅返回有效投喂（排除冲销凭证行与已冲销的原投喂）
+6. **Dashboard**：塘总数、quarantine 数、近 24h 采样数、近 7 日**有效**投喂总量 kg（冲销凭证与已冲销原投喂均不计入，与投喂页「仅有效投喂」合计口径完全一致，即已冲销千克被全额扣除）
 
 ## 前端页面
 
@@ -63,6 +68,7 @@ cd backend
 pip install -r requirements.txt
 set DATABASE_URL=postgresql+psycopg2://tidenursery:tidenursery@localhost:5434/tidenursery
 python -c "from app.database import Base, engine; from app import models; Base.metadata.create_all(bind=engine)"
+python -c "from app.migrate import migrate; migrate()"
 python -c "from app.seed import seed; seed()"
 uvicorn app.main:app --reload --port 8400
 

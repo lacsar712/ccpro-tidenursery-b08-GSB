@@ -39,6 +39,16 @@ export type FeedEvent = {
   feedType: string
   amountKg: number
   operatorName: string
+  /** 冲销凭证行：指向被冲销的原投喂编号 */
+  reversalOfId?: number | null
+  /** 冲销凭证行：冲销原因（至少 6 字） */
+  reversalReason?: string | null
+  /** 冲销凭证行：冲销时刻 */
+  reversedAt?: string | null
+  /** 冲销凭证行：冲销操作人 */
+  reversedBy?: string | null
+  /** 原投喂是否已被冲销 */
+  isReversed?: boolean
 }
 
 export type DashboardStats = {

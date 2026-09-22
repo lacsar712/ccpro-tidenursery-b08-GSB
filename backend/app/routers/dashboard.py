@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 
 from app.auth import get_current_user
 from app.database import get_db
@@ -31,9 +31,17 @@ def get_stats(
         .scalar()
         or 0
     )
+    # 近 7 日投喂千克按“有效投喂”口径：冲销凭证行与已被冲销的原投喂均不计入
+    # （与投喂页“仅有效投喂”的合计完全一致，已冲销部分被全额扣除）。
+    voucher = aliased(FeedEvent)
     feed_kg_last_7d = (
         db.query(func.coalesce(func.sum(FeedEvent.amount_kg), 0.0))
-        .filter(FeedEvent.fed_at >= now - timedelta(days=7))
+        .outerjoin(voucher, voucher.reversal_of_id == FeedEvent.id)
+        .filter(
+            FeedEvent.fed_at >= now - timedelta(days=7),
+            FeedEvent.reversal_of_id.is_(None),
+            voucher.id.is_(None),
+        )
         .scalar()
         or 0.0
     )
