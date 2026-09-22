@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.auth import get_current_user
 from app.database import get_db
 from app.models.feed_event import FeedEvent
+from app.models.feed_reversal import FeedReversal
 from app.models.pond import Pond
 from app.models.user import User
 from app.models.water_sample import WaterSample
@@ -31,9 +32,12 @@ def get_stats(
         .scalar()
         or 0
     )
+    # 近 7 日投喂千克扣除已冲销（仅统计有效投喂）
     feed_kg_last_7d = (
         db.query(func.coalesce(func.sum(FeedEvent.amount_kg), 0.0))
+        .outerjoin(FeedReversal, FeedReversal.feed_event_id == FeedEvent.id)
         .filter(FeedEvent.fed_at >= now - timedelta(days=7))
+        .filter(FeedReversal.id.is_(None))
         .scalar()
         or 0.0
     )

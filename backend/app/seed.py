@@ -127,6 +127,14 @@ def seed() -> None:
                         amount_kg=2.5,
                         operator_name="水质技术员",
                     ),
+                    # 一笔可冲销的投喂（未冲销，可在投喂页发起冲销）
+                    FeedEvent(
+                        pond_id=p2.id,
+                        fed_at=now - timedelta(hours=4),
+                        feed_type="卤虫无节幼体",
+                        amount_kg=0.6,
+                        operator_name="场长",
+                    ),
                 ]
             )
             db.commit()

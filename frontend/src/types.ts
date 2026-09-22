@@ -32,6 +32,15 @@ export type WaterSample = {
   notes?: string | null
 }
 
+export type FeedReversal = {
+  id: number
+  feedEventId: number
+  amountKg: number
+  reason: string
+  reversedAt: string
+  operatorName: string
+}
+
 export type FeedEvent = {
   id: number
   pondId: number
@@ -39,6 +48,7 @@ export type FeedEvent = {
   feedType: string
   amountKg: number
   operatorName: string
+  reversal?: FeedReversal | null
 }
 
 export type DashboardStats = {

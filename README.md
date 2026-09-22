@@ -45,8 +45,18 @@ docker compose up --build
 2. **Hatchery 育苗场**：`name`、`seawaterSource`、`notes`
 3. **Pond 育苗塘**：`hatcheryId`、`pondCode`、`species`、`volumeM3`、`status(stocked|dry|quarantine)`；同场 `pondCode` 唯一
 4. **WaterSample 水质样**：`pondId`、`sampledAt`、`tempC`、`salinityPpt`、`doMgL`、`ph`、`notes`；`doMgL > 0` 且 `ph ∈ [6,9]`，否则返回 **400**
-5. **FeedEvent 投喂**：`pondId`、`fedAt`、`feedType`、`amountKg`、`operatorName`
-6. **Dashboard**：塘总数、quarantine 数、近 24h 采样数、近 7 日投喂总量 kg
+5. **FeedEvent 投喂**：`pondId`、`fedAt`、`feedType`、`amountKg`、`operatorName`；**不允许物理删除**，错误投喂以冲销凭证负向抵消
+6. **FeedReversal 冲销凭证**：`feedEventId`、`amountKg`、`reason`、`reversedAt`、`operatorName`
+7. **Dashboard**：塘总数、quarantine 数、近 24h 采样数、近 7 日有效投喂 kg（已扣除冲销）
+
+## 冲销与统计
+
+- 投喂事件只增不删：登记错误时，在投喂页点击「冲销」或 `POST /api/feed-events/{id}/reversal` 开具冲销凭证，负向抵消原投喂。
+- 冲销字段：原投喂编号 `feedEventId`、冲销千克 `amountKg`、原因 `reason`、冲销时刻 `reversedAt`（服务器入账时间）、操作人 `operatorName`（当前登录用户）。
+- 校验规则：`amountKg` **必须等于原投喂千克**；`reason` **至少 6 字**；同一原投喂**仅可冲销一次**（`feed_event_id` 唯一约束），违反返回 **400**。
+- 列表口径：默认列表保留全部原始行，已冲销行带「已冲销」标记及凭证信息；`GET /api/feed-events?validOnly=true` 仅返回有效投喂（排除已冲销）。
+- 统计口径：仪表盘「近 7 日有效投喂 kg」与投喂页「近 7 日有效投喂合计」同源同口径，均**扣除已冲销**。
+- 种子数据内含一笔可冲销投喂（A-02 塘 · 卤虫无节幼体 · 0.6 kg），可直接体验冲销流程。
 
 ## 前端页面
 

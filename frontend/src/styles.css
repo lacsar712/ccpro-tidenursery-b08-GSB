@@ -278,6 +278,51 @@ th {
   color: #1a7a6c;
 }
 
+.badge.voided {
+  background: #fdeceb;
+  color: var(--danger);
+}
+
+tr.row-voided td {
+  color: var(--muted);
+  background: rgba(237, 240, 242, 0.35);
+}
+
+.void-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.check {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-title {
+  margin: 0;
+  color: var(--sea-deep);
+}
+
+.form-grid p {
+  margin: 0;
+}
+
+.btn-row {
+  display: flex;
+  gap: 8px;
+}
+
 .login-page {
   min-height: 100vh;
   display: grid;

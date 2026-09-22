@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from sqlalchemy import String, Integer, Float, ForeignKey, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -17,3 +18,6 @@ class FeedEvent(Base):
     operator_name: Mapped[str] = mapped_column(String(64), nullable=False)
 
     pond: Mapped["Pond"] = relationship("Pond", back_populates="feed_events")
+    reversal: Mapped[Optional["FeedReversal"]] = relationship(
+        "FeedReversal", back_populates="feed_event", uselist=False
+    )
